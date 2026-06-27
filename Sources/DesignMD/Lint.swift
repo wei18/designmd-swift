@@ -56,7 +56,11 @@ public func lint(_ content: String, rules: [RuleDescriptor] = defaultRuleDescrip
 
 /// Extract document sections from raw markdown by finding H2 headings.
 /// Fallback used when the parser cannot extract YAML. Mirrors `lint.ts`.
-func extractSectionsFromContent(_ content: String) -> [DocumentSection] {
+func extractSectionsFromContent(_ rawContent: String) -> [DocumentSection] {
+    var content = rawContent
+    if content.hasPrefix("\u{FEFF}") { content.removeFirst() }
+    content = content.replacingOccurrences(of: "\r\n", with: "\n")
+                     .replacingOccurrences(of: "\r", with: "\n")
     let lines = content.components(separatedBy: "\n")
     var sections: [DocumentSection] = []
     var currentStart = 0

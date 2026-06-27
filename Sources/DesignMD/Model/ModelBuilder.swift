@@ -277,16 +277,17 @@ private func assign(_ t: inout ResolvedTypography, _ name: String, _ dim: Resolv
 }
 
 /// Matches the TS `/^\d*\.?\d+$/` check used for unitless lineHeight.
+/// Must end in a digit (so `"5."` is rejected, like upstream) and contain at
+/// most one dot.
 private func isUnitlessNumber(_ s: String) -> Bool {
-    guard !s.isEmpty else { return false }
-    var sawDigit = false
+    guard let last = s.last, last.isNumber, last.isASCII else { return false }
     var sawDot = false
     for c in s {
-        if c.isNumber && c.isASCII { sawDigit = true }
-        else if c == "." && !sawDot { sawDot = true }
-        else { return false }
+        if c.isNumber && c.isASCII { continue }
+        if c == "." && !sawDot { sawDot = true; continue }
+        return false
     }
-    return sawDigit
+    return true
 }
 
 /// Resolve a token reference with chained resolution and cycle detection.

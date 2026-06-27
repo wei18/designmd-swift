@@ -56,7 +56,13 @@ public enum DesignMarkdownParser {
         let startLine: Int
     }
 
-    public static func parse(_ content: String) -> ParserResult {
+    public static func parse(_ rawContent: String) -> ParserResult {
+        // Normalize line endings (CRLF / CR → LF) and strip a leading BOM, so
+        // Windows / git-autocrlf authored files parse identically to LF files.
+        var content = rawContent
+        if content.hasPrefix("\u{FEFF}") { content.removeFirst() }
+        content = content.replacingOccurrences(of: "\r\n", with: "\n")
+                         .replacingOccurrences(of: "\r", with: "\n")
         let lines = content.components(separatedBy: "\n")
         var blocks: [Block] = []
         var headings: [(text: String, line: Int)] = []  // 1-based
@@ -119,8 +125,11 @@ public enum DesignMarkdownParser {
 
     private static func fenceInfo(_ trimmed: String) -> String? {
         guard trimmed.hasPrefix("```") else { return nil }
-        let info = String(trimmed.dropFirst(3)).trimmingCharacters(in: .whitespaces).lowercased()
-        return info  // "" for a bare fence, otherwise the language
+        let info = String(trimmed.dropFirst(3)).trimmingCharacters(in: .whitespaces)
+        // The language is the first token of the info string; ignore trailing
+        // metadata like ```yaml title=x (mirrors CommonMark's lang/meta split).
+        let lang = info.split(whereSeparator: { $0.isWhitespace }).first.map(String.init) ?? ""
+        return lang.lowercased()  // "" for a bare fence, otherwise the language
     }
 
     private static func isFenceClose(_ line: String) -> Bool {

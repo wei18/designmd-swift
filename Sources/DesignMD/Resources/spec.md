@@ -1,5 +1,8 @@
 <!-- Generated from spec.mdx + spec-config.ts | version: alpha -->
 <!-- Do not edit directly. Run `bun run spec:gen` to regenerate. -->
+<!-- MODIFIED from the upstream DESIGN.md project (docs/spec.md), Copyright 2026
+     Google LLC, Apache-2.0. Change by designmd-swift: `pt` added to the list of
+     valid dimension units for the Apple/SwiftUI edition. See NOTICE. -->
 
 # DESIGN.md Format
 

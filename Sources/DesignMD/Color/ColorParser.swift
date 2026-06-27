@@ -195,30 +195,44 @@ private func clampInt(_ v: Double) -> Int {
 
 // ── Numeric parsing ────────────────────────────────────────────────
 
-/// Mimics JS `parseFloat`: parse the leading numeric portion, NaN if none.
+/// Mimics JS `parseFloat`: parse the leading numeric portion (including an
+/// exponent and `Infinity`), NaN if none.
 func jsParseFloat(_ s: String) -> Double {
     let t = s.trimmingCharacters(in: .whitespaces)
-    var idx = t.startIndex
+    if t.hasPrefix("Infinity") || t.hasPrefix("+Infinity") { return .infinity }
+    if t.hasPrefix("-Infinity") { return -.infinity }
+
+    let chars = Array(t)
+    let n = chars.count
+    var i = 0
+    if i < n, chars[i] == "+" || chars[i] == "-" { i += 1 }
+
+    // Mantissa: digits, optional single dot, digits.
     var seenDigit = false
     var seenDot = false
-    if idx < t.endIndex, t[idx] == "+" || t[idx] == "-" { idx = t.index(after: idx) }
-    var lastValid = idx
-    while idx < t.endIndex {
-        let c = t[idx]
+    var lastValid = i
+    while i < n {
+        let c = chars[i]
         if c.isNumber && c.isASCII {
-            seenDigit = true
-            idx = t.index(after: idx)
-            lastValid = idx
+            seenDigit = true; i += 1; lastValid = i
         } else if c == "." && !seenDot {
-            seenDot = true
-            idx = t.index(after: idx)
-            if seenDigit { lastValid = idx }
+            seenDot = true; i += 1; if seenDigit { lastValid = i }
         } else {
             break
         }
     }
     guard seenDigit else { return .nan }
-    return Double(t[t.startIndex..<lastValid]) ?? .nan
+
+    // Optional exponent: [eE][+-]?digits — only consumed if it has digits.
+    if i < n, chars[i] == "e" || chars[i] == "E" {
+        var j = i + 1
+        if j < n, chars[j] == "+" || chars[j] == "-" { j += 1 }
+        var expDigits = false
+        while j < n, chars[j].isNumber && chars[j].isASCII { expDigits = true; j += 1 }
+        if expDigits { lastValid = j }
+    }
+
+    return Double(String(chars[0..<lastValid])) ?? .nan
 }
 
 /// Mimics JS `Number()`: strict full-string numeric parse ("" → 0, junk → NaN).
