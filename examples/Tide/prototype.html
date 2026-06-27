@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tide — DESIGN.md → SwiftUI prototype</title>
+<style>
+  :root{
+    /* ↓ these CSS vars ARE the DESIGN.md tokens (pt → px 1:1 for screen) */
+    --primary:#0B3D52; --accent:#00A0C6; --accent-fixed:#006080;
+    --surface:#F7F9FB; --onSurface:#0B1A22;
+    --radius-md:12px; --space-sm:8px; --space-md:16px;
+    --ink:#0B1A22; --muted:#5B6B73; --line:#E3E9EE; --bg:#EEF2F5;
+    --ok:#1E8E3E; --warn:#B8860B; --err:#C5221F;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 24px 64px}
+  h1{font-size:30px;font-weight:700;margin:0 0 4px;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:0 0 28px}
+  h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+     margin:36px 0 14px;font-weight:600}
+  .grid{display:grid;gap:20px}
+  .cols{grid-template-columns:1fr 1fr}
+  @media(max-width:780px){.cols{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600}
+  .pill.ok{background:#E6F4EA;color:var(--ok)} .pill.warn{background:#FCEFCB;color:var(--warn)}
+  .pill.err{background:#FCE8E6;color:var(--err)} .pill.info{background:#E8F0FE;color:#1A73E8}
+
+  /* token galleries */
+  .swatches{display:flex;flex-wrap:wrap;gap:12px}
+  .sw{width:118px} .sw .chip{height:56px;border-radius:10px;border:1px solid rgba(0,0,0,.08)}
+  .sw .nm{font-weight:600;font-size:13px;margin-top:6px} .sw .hx{font-size:12px;color:var(--muted)}
+  .type li{margin:6px 0;display:flex;align-items:baseline;gap:12px}
+  .type .lbl{width:120px;color:var(--muted);font-size:12px}
+  ul.bare{list-style:none;padding:0;margin:0}
+  .scaleitem{display:flex;align-items:center;gap:14px;margin:8px 0}
+  .scalebar{height:14px;background:var(--accent);border-radius:4px}
+
+  /* phone mockup of TideCardView */
+  .phone{width:300px;background:#fff;border-radius:28px;padding:14px;
+    border:1px solid var(--line);box-shadow:0 12px 40px rgba(11,26,34,.10)}
+  .tcard{background:var(--surface);border-radius:var(--radius-md);padding:var(--space-md);
+    display:flex;flex-direction:column;gap:var(--space-md)}
+  .tcard .title{font-size:34px;line-height:1.05;font-weight:700;color:var(--primary);letter-spacing:-.02em}
+  .tcard .metric{font-size:13px;font-weight:500;color:var(--onSurface)}
+  .tcard .btn{font-size:17px;font-weight:500;color:#fff;text-align:center;
+    padding:var(--space-sm) var(--space-md);border-radius:var(--radius-md)}
+  .btn-bad{background:var(--accent)} .btn-good{background:var(--accent-fixed)}
+
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+  .finding{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .finding:last-child{border:0}
+  .score{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .score .m{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .score .big{font-size:26px;font-weight:700;color:var(--primary)}
+  .score .cap{font-size:12px;color:var(--muted);margin-top:2px}
+  .legend{font-size:12px;color:var(--muted);margin-top:8px}
+  code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;
+    background:#F3F6F8;padding:1px 5px;border-radius:4px}
+  .arrow{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Tide · DESIGN.md → SwiftUI</h1>
+  <p class="sub">一份 <code>DESIGN.md</code> 經 <code>designmd</code> 解析 → 渲染結果與工具成效。所有顏色/字級/間距/圓角都來自 token。</p>
+
+  <!-- ───────── 設計系統 ───────── -->
+  <h2>① 解析出的設計系統（tokens）</h2>
+  <div class="grid cols">
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:10px">Colors</div>
+      <div class="swatches">
+        <div class="sw"><div class="chip" style="background:#0B3D52"></div><div class="nm">primary</div><div class="hx mono">#0B3D52</div></div>
+        <div class="sw"><div class="chip" style="background:#00A0C6"></div><div class="nm">accent</div><div class="hx mono">#00A0C6</div></div>
+        <div class="sw"><div class="chip" style="background:#F7F9FB"></div><div class="nm">surface</div><div class="hx mono">#F7F9FB</div></div>
+        <div class="sw"><div class="chip" style="background:#0B1A22"></div><div class="nm">onSurface</div><div class="hx mono">#0B1A22</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:10px">Typography · Spacing · Radius</div>
+      <ul class="bare type">
+        <li><span class="lbl">largeTitle 34pt</span><span style="font-size:24px;font-weight:700;color:var(--primary)">High Tide</span></li>
+        <li><span class="lbl">body 17pt</span><span style="font-size:17px">Set Alert</span></li>
+        <li><span class="lbl">metric 13pt mono</span><span class="mono" style="font-size:13px">2.4 m</span></li>
+      </ul>
+      <div style="margin-top:12px">
+        <div class="scaleitem"><span class="lbl" style="width:120px;color:var(--muted);font-size:12px">spacing.sm 8</span><div class="scalebar" style="width:8px"></div></div>
+        <div class="scaleitem"><span class="lbl" style="width:120px;color:var(--muted);font-size:12px">spacing.md 16</span><div class="scalebar" style="width:16px"></div></div>
+        <div class="scaleitem"><span class="lbl" style="width:120px;color:var(--muted);font-size:12px">rounded.md 12</span>
+          <div style="width:60px;height:34px;background:#fff;border:2px solid var(--accent);border-radius:12px"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────── 渲染結果 + 成效（對比度） ───────── -->
+  <h2>② 渲染結果（= TideCardView.swift）＋ 工具抓到的問題</h2>
+  <div class="grid cols">
+    <div class="card">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+        <span class="pill err">designmd 標記</span><span style="font-size:13px;color:var(--muted)">原始設計</span>
+      </div>
+      <div class="phone"><div class="tcard">
+        <div class="title">High Tide</div>
+        <div class="metric mono">2.4 m</div>
+        <div class="btn btn-bad">Set Alert</div>
+      </div></div>
+      <p class="legend">⚠ <b>contrast-ratio</b>：白字 on accent(<span class="mono">#00a0c6</span>) = <b>3.07:1</b>，低於 WCAG AA 4.5。肉眼容易漏，linter 直接抓出。</p>
+    </div>
+    <div class="card">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+        <span class="pill ok">修正後 AA ✓</span><span style="font-size:13px;color:var(--muted)">accent 加深為 #006080</span>
+      </div>
+      <div class="phone"><div class="tcard">
+        <div class="title">High Tide</div>
+        <div class="metric mono">2.4 m</div>
+        <div class="btn btn-good">Set Alert</div>
+      </div></div>
+      <p class="legend">✓ 白字 on <span class="mono">#006080</span> = <b>7.04:1</b>，通過 AA。改 <code>DESIGN.md</code> 一個值 → 重新 export → 整個 UI 跟著變。</p>
+    </div>
+  </div>
+
+  <!-- ───────── 成效 ───────── -->
+  <h2>③ 成效 · designmd lint 的真實輸出</h2>
+  <div class="card">
+    <div class="finding"><span class="pill warn">warning</span><div><b>components.button-primary</b> — textColor (#ffffff) on backgroundColor (#00a0c6) has contrast ratio <b>3.07:1</b>, below WCAG AA minimum of 4.5:1.</div></div>
+    <div class="finding"><span class="pill warn">warning</span><div><b>colors.onSurface</b> — 'onSurface' is defined but never referenced by any component.</div></div>
+    <div class="finding"><span class="pill info">info</span><div>Design system defines 4 colors, 3 typography scales, 1 rounding level, 2 spacing tokens, 1 component.</div></div>
+    <p class="legend">summary: <b>0 errors · 2 warnings · 1 info</b> — 9 條規則裡這份命中 contrast-ratio 與 orphaned-tokens。</p>
+  </div>
+
+  <h2>④ 成效 · 工具品質（對上游 TS 逐項驗證）</h2>
+  <div class="score">
+    <div class="m"><div class="big">12/12</div><div class="cap">lint 輸出 byte-identical</div></div>
+    <div class="m"><div class="big">5/5</div><div class="cap">diff byte-identical</div></div>
+    <div class="m"><div class="big">7/7</div><div class="cap">DTCG export byte-identical</div></div>
+    <div class="m"><div class="big">spec ✓</div><div class="cap">規則表/JSON identical</div></div>
+    <div class="m"><div class="big">25</div><div class="cap">Swift 測試全過</div></div>
+    <div class="m"><div class="big">pt</div><div class="cap">Apple 單位（唯一刻意差異）</div></div>
+  </div>
+
+  <h2>⑤ 一條龍產物</h2>
+  <div class="card">
+    <table>
+      <tr><th>指令</th><th>產物</th><th>用途</th></tr>
+      <tr><td class="mono">lint DESIGN.md</td><td>findings + summary</td><td>CI 守門（含 WCAG 對比）</td></tr>
+      <tr><td class="mono">export --format swift</td><td>Theme.swift</td><td><span class="arrow">→</span> SwiftUI（<code>Theme.Colors.accent</code>…）</td></tr>
+      <tr><td class="mono">export --format asset-catalog</td><td>Tide.xcassets</td><td><span class="arrow">→</span> <code>Color("accent")</code> runtime</td></tr>
+      <tr><td class="mono">diff a.md b.md</td><td>token/finding 差異</td><td>抓設計回歸</td></tr>
+      <tr><td class="mono">spec</td><td>格式規格 + 規則表</td><td>餵給 AI agent 的 context</td></tr>
+    </table>
+  </div>
+
+  <p class="legend" style="margin-top:24px">這份 prototype 只用純 HTML/CSS，token 值取自 <code>examples/Tide/DESIGN.md</code>；對比度數字（3.07 / 7.04）由 designmd 與 WCAG 公式實算，非估計。</p>
+
+</div>
+</body>
+</html>

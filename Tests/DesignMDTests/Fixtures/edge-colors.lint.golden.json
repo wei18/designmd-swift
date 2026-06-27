@@ -1,0 +1,38 @@
+{
+  "findings": [
+    {
+      "severity": "warning",
+      "path": "colors.c",
+      "message": "'c' is defined but never referenced by any component."
+    },
+    {
+      "severity": "warning",
+      "path": "colors.alias",
+      "message": "'alias' is defined but never referenced by any component."
+    },
+    {
+      "severity": "info",
+      "message": "Design system defines 5 colors, 1 component."
+    },
+    {
+      "severity": "info",
+      "path": "spacing",
+      "message": "No 'spacing' section defined. Layout spacing will fall back to agent defaults."
+    },
+    {
+      "severity": "info",
+      "path": "rounded",
+      "message": "No 'rounded' section defined. Corner rounding will fall back to agent defaults."
+    },
+    {
+      "severity": "warning",
+      "path": "typography",
+      "message": "No typography tokens defined. Agents will use default font choices, reducing your control over the design system's typographic identity."
+    }
+  ],
+  "summary": {
+    "errors": 0,
+    "warnings": 3,
+    "infos": 3
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "findings": [
+    {
+      "severity": "warning",
+      "path": "colours",
+      "message": "Unknown key \"colours\" — did you mean \"colors\"?"
+    },
+    {
+      "severity": "warning",
+      "path": "colours",
+      "message": "\"colours\" looks like a design-token map but is not a recognized schema key (colors, typography, spacing, rounded, components). It will be silently ignored by export commands. Rename it to a supported key or move its values under a recognized section."
+    },
+    {
+      "severity": "warning",
+      "path": "brand_tokens",
+      "message": "\"brand_tokens\" looks like a design-token map but is not a recognized schema key (colors, typography, spacing, rounded, components). It will be silently ignored by export commands. Rename it to a supported key or move its values under a recognized section."
+    }
+  ],
+  "summary": {
+    "errors": 0,
+    "warnings": 3,
+    "infos": 0
+  }
+}

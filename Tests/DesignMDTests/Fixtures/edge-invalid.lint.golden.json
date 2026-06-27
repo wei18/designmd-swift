@@ -1,0 +1,38 @@
+{
+  "findings": [
+    {
+      "severity": "error",
+      "path": "colors.bad",
+      "message": "'notacolor' is not a valid color. Expected a CSS color value (e.g., #ffffff, rgb(0 0 0), oklch(0.5 0.2 240))."
+    },
+    {
+      "severity": "error",
+      "path": "components.button",
+      "message": "Reference {colors.missing} does not resolve to any defined token."
+    },
+    {
+      "severity": "warning",
+      "path": "components.button.borderColor",
+      "message": "'borderColor' is not a recognized component sub-token. Valid sub-tokens: backgroundColor, textColor, typography, rounded, padding, size, height, width."
+    },
+    {
+      "severity": "warning",
+      "path": "components.button",
+      "message": "textColor (#222222) on backgroundColor (#1a1c1e) has contrast ratio 1.07:1, below WCAG AA minimum of 4.5:1."
+    },
+    {
+      "severity": "warning",
+      "path": "colors.accent",
+      "message": "'accent' is defined but never referenced by any component."
+    },
+    {
+      "severity": "info",
+      "message": "Design system defines 2 colors, 1 typography scale, 1 rounding level, 1 spacing token, 1 component."
+    }
+  ],
+  "summary": {
+    "errors": 2,
+    "warnings": 3,
+    "infos": 1
+  }
+}

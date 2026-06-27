@@ -1,0 +1,32 @@
+{
+  "findings": [
+    {
+      "severity": "info",
+      "message": "Design system defines 1 color."
+    },
+    {
+      "severity": "info",
+      "path": "spacing",
+      "message": "No 'spacing' section defined. Layout spacing will fall back to agent defaults."
+    },
+    {
+      "severity": "info",
+      "path": "rounded",
+      "message": "No 'rounded' section defined. Corner rounding will fall back to agent defaults."
+    },
+    {
+      "severity": "warning",
+      "path": "typography",
+      "message": "No typography tokens defined. Agents will use default font choices, reducing your control over the design system's typographic identity."
+    },
+    {
+      "severity": "warning",
+      "message": "Section 'Colors' appears before 'Overview', which is out of order. Expected order: Overview, Colors, Typography, Layout, Elevation & Depth, Shapes, Components, Do's and Don'ts"
+    }
+  ],
+  "summary": {
+    "errors": 0,
+    "warnings": 2,
+    "infos": 3
+  }
+}

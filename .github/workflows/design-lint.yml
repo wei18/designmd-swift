@@ -1,0 +1,75 @@
+name: CI
+
+# Builds the `designmd` tool, runs its tests, then gates the build on
+# `designmd lint` over every DESIGN.md file in the repo (excluding the test
+# tree). The lint step fails CI when a DESIGN.md has errors.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# Override to point the lint step at specific files/dirs instead of repo-wide
+# discovery, e.g. "App/DESIGN.md docs/DESIGN.md".
+env:
+  DESIGN_FILES: ""
+
+jobs:
+  ci:
+    name: Build · test · lint DESIGN.md
+    runs-on: ubuntu-latest
+    container: swift:6.0
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache SwiftPM build
+        uses: actions/cache@v4
+        with:
+          path: .build
+          key: spm-${{ runner.os }}-${{ hashFiles('Package.swift', 'Package.resolved') }}
+          restore-keys: |
+            spm-${{ runner.os }}-
+
+      - name: Build designmd (release)
+        run: swift build -c release
+
+      - name: Test
+        run: swift test
+
+      - name: Lint DESIGN.md files
+        shell: bash
+        run: |
+          set -uo pipefail
+          BIN="$PWD/.build/release/designmd"
+
+          # Use explicit DESIGN_FILES if provided (space-separated); otherwise
+          # discover repo-wide, excluding the test tree. Portable newline list —
+          # no `mapfile` (works on bash 3.2+).
+          if [ -n "${DESIGN_FILES}" ]; then
+            files="$(printf '%s\n' ${DESIGN_FILES})"
+          else
+            files="$(find . -iname 'DESIGN.md' -not -path './Tests/*' | sort)"
+          fi
+
+          if [ -z "$files" ]; then
+            echo "No DESIGN.md files found to lint."
+            exit 0
+          fi
+
+          status=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            echo "::group::designmd lint $f"
+            if "$BIN" lint "$f"; then
+              echo "✓ $f passed"
+            else
+              echo "::error file=$f::designmd lint reported errors in $f"
+              status=1
+            fi
+            echo "::endgroup::"
+          done <<< "$files"
+
+          if [ "$status" -ne 0 ]; then
+            echo "::error::One or more DESIGN.md files failed linting."
+          fi
+          exit $status

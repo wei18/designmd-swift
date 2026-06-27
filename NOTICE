@@ -1,0 +1,20 @@
+designmd-swift
+Copyright 2026 Wei (github.com/wei18)
+
+This product is a Swift port of the DESIGN.md format tooling.
+
+It is derived from the DESIGN.md project by Google Labs:
+  https://github.com/google-labs-code/design.md
+  Copyright 2026 Google LLC, licensed under the Apache License, Version 2.0.
+
+The DESIGN.md format specification, section model, `{path.to.token}` reference
+syntax, lint-rule semantics, color science, and DTCG export shape originate
+from that project and are reimplemented here in Swift. The bundled format
+specification document (Sources/DesignMD/Resources/spec.md) is adapted from the
+upstream `docs/spec.md`.
+
+This port adds Apple-platform behavior that is NOT part of upstream:
+  - `pt` (points) accepted as a first-class dimension unit
+  - SwiftUI `Theme.swift` and Asset Catalog (`.xcassets`) exporters
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
