@@ -55,15 +55,11 @@ final class LintParityTests: XCTestCase {
     // ── Helpers ────────────────────────────────────────────────────
 
     private func mdFixtureURLs() throws -> [URL] {
-        let urls = Bundle.module.urls(forResourcesWithExtension: "md", subdirectory: "Fixtures") ?? []
-        return urls.sorted { $0.lastPathComponent < $1.lastPathComponent }
+        allFixtureMD()
     }
 
     private func fixtureURL(_ name: String, ext: String) throws -> URL {
-        guard let url = Bundle.module.url(forResource: name, withExtension: ext, subdirectory: "Fixtures") else {
-            throw XCTSkip("missing fixture \(name).\(ext)")
-        }
-        return url
+        fixtureFile("\(name).\(ext)")
     }
 
     private func loadGolden(forFixture md: URL) throws -> Golden {

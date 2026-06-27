@@ -87,16 +87,10 @@ final class ExportTests: XCTestCase {
     // ── Helpers ────────────────────────────────────────────────────
 
     private func fixture(_ name: String, _ ext: String) throws -> URL {
-        guard let url = Bundle.module.url(forResource: name, withExtension: ext, subdirectory: "Fixtures") else {
-            throw XCTSkip("missing fixture \(name).\(ext)")
-        }
-        return url
+        fixtureFile("\(name).\(ext)")
     }
 
     private func goldenURL(_ name: String) throws -> URL {
-        guard let url = Bundle.module.url(forResource: name, withExtension: "dtcg.golden.json", subdirectory: "Fixtures") else {
-            throw XCTSkip("missing golden \(name).dtcg.golden.json")
-        }
-        return url
+        fixtureFile("\(name).dtcg.golden.json")
     }
 }

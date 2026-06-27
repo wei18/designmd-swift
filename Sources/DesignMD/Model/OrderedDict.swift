@@ -44,6 +44,8 @@ public struct OrderedDict<Value> {
     }
 }
 
+extension OrderedDict: Sendable where Value: Sendable {}
+
 extension OrderedDict: Sequence {
     public func makeIterator() -> AnyIterator<(String, Value)> {
         var index = 0
