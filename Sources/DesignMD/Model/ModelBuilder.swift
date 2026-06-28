@@ -136,6 +136,7 @@ public func buildModel(_ input: ParsedDesignSystem) -> ModelResult {
 
     // ── Phase 3: components ────────────────────────────────────────
     var components = OrderedDict<ComponentDef>()
+    var referencedTokenPaths = Set<String>()
     if let componentsValue = input.components, let compEntries = componentsValue.entries {
         for comp in compEntries {
             var properties = OrderedDict<ResolvedValue>()
@@ -152,6 +153,10 @@ public func buildModel(_ input: ParsedDesignSystem) -> ModelResult {
                         var visited = Set<String>()
                         if let resolved = resolveReference(symbolTable, String(s.dropFirst().dropLast()), &visited) {
                             properties.set(propName, resolved)
+                            // Mark every path walked in the chain as referenced,
+                            // but only when the target is a typed token (mirrors
+                            // upstream, which scans only typed property values).
+                            if resolved.isTyped { referencedTokenPaths.formUnion(visited) }
                         } else {
                             unresolvedRefs.append(s)
                             properties.set(propName, .string(s))
@@ -187,6 +192,7 @@ public func buildModel(_ input: ParsedDesignSystem) -> ModelResult {
     state.spacing = spacing
     state.components = components
     state.symbolTable = symbolTable
+    state.referencedTokenPaths = referencedTokenPaths
     state.sections = input.sections
     state.unknownKeys = unknownKeys
     state.unknownKeyValues = unknownKeyValues

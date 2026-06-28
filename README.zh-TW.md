@@ -71,6 +71,11 @@ designmd export DESIGN.md --format asset-catalog --out Colors.xcassets
 
 # Spec——方便把格式規格塞進 agent 的 prompt
 designmd spec --rules
+
+# Fix——把區段重新排成標準順序
+designmd fix DESIGN.md            # 修正後內容 → stdout
+designmd fix DESIGN.md --write    # 直接覆寫原檔
+designmd fix DESIGN.md --format json
 ```
 
 `swift` 產出強型別的 `Theme` enum（`Theme.Colors.primary`、`Theme.Spacing.md`、
@@ -127,6 +132,7 @@ UIKit/SwiftUI 的設計系統不會被誤判；`px`/`rem`/`em` 仍保留相容�
 | `diff`  | 兩版之間的 token + finding 差異；有回歸回 exit 1 |
 | `export`| `dtcg`（W3C tokens.json）· `swift`（Theme.swift）· `asset-catalog`（.xcassets） |
 | `spec`  | 輸出格式規格 + 啟用中的規則表（markdown 或 json） |
+| `fix`   | 把區段重排成標準順序（`--write` 直接覆寫） |
 
 ## 授權與致謝
 

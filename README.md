@@ -74,6 +74,11 @@ designmd export DESIGN.md --format asset-catalog --out Colors.xcassets
 
 # Spec — handy for injecting format context into agent prompts
 designmd spec --rules
+
+# Fix — reorder sections into the canonical order
+designmd fix DESIGN.md            # fixed content → stdout
+designmd fix DESIGN.md --write    # rewrite in place
+designmd fix DESIGN.md --format json   # { details: { beforeOrder, afterOrder }, fixedContent }
 ```
 
 `swift` emits a strongly-typed `Theme` enum (`Theme.Colors.primary`, `Theme.Spacing.md`,
@@ -134,6 +139,7 @@ flagged. `px`/`rem`/`em` remain accepted. See `SpecConfig.standardUnits`.
 | `diff`  | Token + finding diff between two versions; exit 1 on regression |
 | `export`| `dtcg` (W3C tokens.json) · `swift` (Theme.swift) · `asset-catalog` (.xcassets) |
 | `spec`  | Emit the format spec + active rules table (markdown or json) |
+| `fix`   | Reorder sections into the canonical order (`--write` in place) |
 
 ## License & attribution
 

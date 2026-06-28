@@ -103,6 +103,10 @@ public struct DesignSystemState {
     public var components = OrderedDict<ComponentDef>()
     /// Flat lookup: "colors.primary" → ResolvedValue
     public var symbolTable = OrderedDict<ResolvedValue>()
+    /// Token paths reached by a component via `{token.reference}` chains (i.e.
+    /// genuinely referenced, by path — the value-typed analogue of upstream's
+    /// reference-identity check in the orphaned-tokens rule).
+    public var referencedTokenPaths: Set<String> = []
     /// Markdown H2 heading names found in the document.
     public var sections: [String]?
     /// Top-level YAML keys not part of the known schema.

@@ -74,14 +74,10 @@ private func colorFamily(_ name: String) -> String {
 func orphanedTokens(_ state: DesignSystemState) -> [RuleFinding] {
     if state.components.size == 0 { return [] }
 
-    var referencedPaths = Set<String>()
-    for (_, comp) in state.components {
-        for (_, value) in comp.properties where value.isTyped {
-            for (key, symValue) in state.symbolTable where symValue == value {
-                referencedPaths.insert(key)
-            }
-        }
-    }
+    // Referenced-by-path (computed during model resolution) — the value-typed
+    // analogue of upstream's reference-identity scan. Avoids the false
+    // suppression that value-equality caused for distinct tokens of equal value.
+    let referencedPaths = state.referencedTokenPaths
 
     var referencedFamilies = Set<String>()
     for path in referencedPaths where path.hasPrefix("colors.") {

@@ -11,7 +11,7 @@ struct DesignMDCLI: ParsableCommand {
         commandName: "designmd",
         abstract: "Agent-first CLI for DESIGN.md — the Apple/SwiftUI edition.",
         version: "0.1.0",
-        subcommands: [LintCommand.self, DiffCommand.self, ExportCommand.self, SpecCommand.self])
+        subcommands: [LintCommand.self, DiffCommand.self, ExportCommand.self, SpecCommand.self, FixCommand.self])
 }
 
 // ── lint ───────────────────────────────────────────────────────────
@@ -182,6 +182,50 @@ struct SpecCommand: ParsableCommand {
                 ("description", .str(info.description)),
             ])
         })
+    }
+}
+
+// ── fix ────────────────────────────────────────────────────────────
+
+struct FixCommand: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "fix",
+        abstract: "Reorder a DESIGN.md's sections into the canonical order.")
+
+    @Argument(help: "Path to DESIGN.md (use \"-\" for stdin)")
+    var file: String
+
+    @Flag(name: .long, help: "Write the fixed content back to the file in place.")
+    var write = false
+
+    @Option(name: .long, help: "Output format: text (fixed content) or json (details).")
+    var format: String = "text"
+
+    func run() throws {
+        let content = try readInput(file)
+        let report = lint(content)
+        let result = fixSectionOrder(report.documentSections)
+
+        if write {
+            guard file != "-" else {
+                FileHandle.standardError.write(Data("cannot --write when reading from stdin\n".utf8))
+                throw ExitCode(2)
+            }
+            try result.fixedContent.write(toFile: file, atomically: true, encoding: .utf8)
+            return
+        }
+
+        if format == "json" {
+            print(JSONValue.object([
+                ("details", .object([
+                    ("beforeOrder", .array(result.details.beforeOrder.map { .str($0) })),
+                    ("afterOrder", .array(result.details.afterOrder.map { .str($0) })),
+                ])),
+                ("fixedContent", .str(result.fixedContent)),
+            ]).serialize())
+        } else {
+            print(result.fixedContent)
+        }
     }
 }
 
