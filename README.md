@@ -110,6 +110,12 @@ them, and a self-contained [`prototype.html`](examples/Tide/prototype.html) visu
 the tokens and the lint results (it even catches a real WCAG failure — white-on-accent at
 3.07:1).
 
+## Docs
+
+- [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) — why prose, not tokens, is the focus (Apple-adapted).
+- [`docs/DESIGN-apple-swiftui.md`](docs/DESIGN-apple-swiftui.md) — the format, expressed for UIKit/SwiftUI.
+- `designmd spec` — the normative format spec + the active lint-rules table.
+
 ## CI
 
 [`.github/workflows/design-lint.yml`](.github/workflows/design-lint.yml) builds the tool,

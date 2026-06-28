@@ -54,6 +54,62 @@ final class ParserFixesTests: XCTestCase {
         XCTAssertNil(report.designSystem.typography.get("body")?.lineHeight)
     }
 
+    func testTildeFenceParses() {
+        let s = "# D\n\n~~~yaml\nname: t\ncolors: { primary: \"#000000\" }\n~~~\n\n## Colors\n"
+        XCTAssertTrue(lint(s).designSystem.colors.has("primary"), "~~~yaml fences should be recognized")
+    }
+
+    func testIndentedFenceNotCaptured() {
+        // 4-space indent = indented code block, not a fence (matches CommonMark/TS).
+        let s = "# D\n\n    ```yaml\n    colors: { primary: \"#000000\" }\n    ```\n\n## Colors\n"
+        let report = lint(s)
+        XCTAssertFalse(report.designSystem.colors.has("primary"))
+        XCTAssertTrue(report.findings.contains { $0.message.contains("No YAML content found") })
+    }
+
+    func testHeadingInsideFenceIsNotASection() {
+        let s = """
+        ---
+        name: t
+        colors: { primary: "#000000" }
+        ---
+
+        ## Real
+
+        ~~~
+        ## NotASection
+        ~~~
+        """
+        let report = lint(s)
+        XCTAssertTrue(report.sections.contains("Real"))
+        XCTAssertFalse(report.sections.contains("NotASection"))
+    }
+
+    func testIndentedHeadingIsNotASection() {
+        let s = """
+        ---
+        name: t
+        colors: { primary: "#000000" }
+        ---
+
+        ## Real
+
+            ## Indented
+        """
+        let report = lint(s)
+        XCTAssertEqual(report.sections, ["Real"])
+    }
+
+    func testHeadingClosingHashesStripped() {
+        let s = "---\nname: t\ncolors: { primary: \"#000000\" }\n---\n\n## Colors ##\n"
+        XCTAssertTrue(lint(s).sections.contains("Colors"))
+    }
+
+    func testFrontmatterTrailingSpace() {
+        let s = "--- \nname: t\ncolors: { primary: \"#000000\" }\n---\n\n## Colors\n"
+        XCTAssertTrue(lint(s).designSystem.colors.has("primary"))
+    }
+
     func testUnitlessLineHeightValidStillAccepted() {
         let md = """
         ---

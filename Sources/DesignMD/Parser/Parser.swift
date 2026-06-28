@@ -67,12 +67,12 @@ public enum DesignMarkdownParser {
         var blocks: [Block] = []
         var headings: [(text: String, line: Int)] = []  // 1-based
 
-        // ── Frontmatter (only at the very top) ──
+        // ── Frontmatter (only at the very top; fences may carry trailing space) ──
         var i = 0
-        if !lines.isEmpty && lines[0] == "---" {
+        if let first = lines.first, first.trimmingCharacters(in: .whitespaces) == "---" {
             var j = 1
             var body: [String] = []
-            while j < lines.count && lines[j] != "---" {
+            while j < lines.count && lines[j].trimmingCharacters(in: .whitespaces) != "---" {
                 body.append(lines[j]); j += 1
             }
             if j < lines.count {  // found closing ---
@@ -83,29 +83,28 @@ public enum DesignMarkdownParser {
         }
 
         // ── Scan remaining lines for fenced yaml blocks and H2 headings ──
+        // CommonMark-aligned: fences/headings may be indented up to 3 spaces;
+        // 4+ spaces is an indented code block. ``` and ~~~ fences both supported.
         var codeBlockIndex = 0
         while i < lines.count {
             let line = lines[i]
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if let fenceLang = fenceInfo(trimmed) {
-                // opening fence at line i (1-based: i+1)
+            if let open = fenceOpen(line) {
                 let startLine = i + 1
                 var body: [String] = []
                 var k = i + 1
-                while k < lines.count && !isFenceClose(lines[k]) {
+                while k < lines.count && !isFenceClose(lines[k], char: open.char, len: open.len) {
                     body.append(lines[k]); k += 1
                 }
-                if fenceLang == "yaml" || fenceLang == "yml" {
+                if open.lang == "yaml" || open.lang == "yml" {
                     blocks.append(Block(yaml: body.joined(separator: "\n"),
                                         codeBlockIndex: codeBlockIndex, startLine: startLine))
                     codeBlockIndex += 1
                 }
-                i = k + 1  // skip past closing fence
+                i = k < lines.count ? k + 1 : k  // skip past closing fence if present
                 continue
             }
-            if trimmed.hasPrefix("## ") {
-                let text = String(trimmed.dropFirst(3)).trimmingCharacters(in: .whitespaces)
-                if !text.isEmpty { headings.append((text, i + 1)) }
+            if let text = atxHeading2(line), !text.isEmpty {
+                headings.append((text, i + 1))
             }
             i += 1
         }
@@ -123,17 +122,54 @@ public enum DesignMarkdownParser {
         return mergeBlocks(blocks, sections: sections, documentSections: documentSections)
     }
 
-    private static func fenceInfo(_ trimmed: String) -> String? {
-        guard trimmed.hasPrefix("```") else { return nil }
-        let info = String(trimmed.dropFirst(3)).trimmingCharacters(in: .whitespaces)
-        // The language is the first token of the info string; ignore trailing
-        // metadata like ```yaml title=x (mirrors CommonMark's lang/meta split).
-        let lang = info.split(whereSeparator: { $0.isWhitespace }).first.map(String.init) ?? ""
-        return lang.lowercased()  // "" for a bare fence, otherwise the language
+    /// Count leading spaces (≤3 of which are allowed indentation) and the rest.
+    private static func leadingIndent(_ line: String) -> (indent: Int, rest: Substring) {
+        var n = 0
+        var idx = line.startIndex
+        while idx < line.endIndex, line[idx] == " " { n += 1; idx = line.index(after: idx) }
+        return (n, line[idx...])
     }
 
-    private static func isFenceClose(_ line: String) -> Bool {
-        line.trimmingCharacters(in: .whitespaces).hasPrefix("```")
+    /// If `line` opens a fenced code block (≤3 indent, 3+ ``` or ~~~), return the
+    /// fence char, its length, and the lowercased language (first info token).
+    private static func fenceOpen(_ line: String) -> (char: Character, len: Int, lang: String)? {
+        let (indent, rest) = leadingIndent(line)
+        guard indent <= 3, let first = rest.first, first == "`" || first == "~" else { return nil }
+        var len = 0
+        for c in rest { if c == first { len += 1 } else { break } }
+        guard len >= 3 else { return nil }
+        let info = String(rest.dropFirst(len)).trimmingCharacters(in: .whitespaces)
+        // A backtick fence's info string may not contain a backtick (CommonMark).
+        if first == "`", info.contains("`") { return nil }
+        let lang = info.split(whereSeparator: { $0.isWhitespace }).first.map(String.init)?.lowercased() ?? ""
+        return (first, len, lang)
+    }
+
+    /// A closing fence: same char, length ≥ opening, ≤3 indent, only whitespace after.
+    private static func isFenceClose(_ line: String, char: Character, len: Int) -> Bool {
+        let (indent, rest) = leadingIndent(line)
+        guard indent <= 3 else { return false }
+        var n = 0
+        var idx = rest.startIndex
+        while idx < rest.endIndex, rest[idx] == char { n += 1; idx = rest.index(after: idx) }
+        guard n >= len else { return false }
+        return rest[idx...].allSatisfy { $0.isWhitespace }
+    }
+
+    /// Extract the text of an ATX H2 (`## …`, ≤3 indent), or nil. Strips an
+    /// optional closing `#` sequence (`## Colors ##` → `Colors`).
+    private static func atxHeading2(_ line: String) -> String? {
+        let (indent, rest) = leadingIndent(line)
+        guard indent <= 3 else { return nil }
+        guard rest.hasPrefix("## ") || rest == "##" else { return nil }
+        var text = String(rest.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+        if let r = text.range(of: " #", options: .backwards) {
+            let tail = text[r.lowerBound...].trimmingCharacters(in: .whitespaces)
+            if !tail.isEmpty, tail.allSatisfy({ $0 == "#" }) {
+                text = String(text[..<r.lowerBound]).trimmingCharacters(in: .whitespaces)
+            }
+        }
+        return text
     }
 
     private static func sliceSections(lines: [String], headings: [(text: String, line: Int)],

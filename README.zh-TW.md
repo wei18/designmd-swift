@@ -106,6 +106,12 @@ let dtcg  = exportDTCG(report.designSystem).serialize()    // W3C tokens.json
 [`prototype.html`](examples/Tide/prototype.html) 把 token 與 lint 成效視覺化（它甚至抓到一個真實的
 WCAG 失敗——白字配 accent 色只有 3.07:1）。
 
+## 文件
+
+- [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) — 為什麼焦點是 prose 而非 token（Apple 改寫版）。
+- [`docs/DESIGN-apple-swiftui.md`](docs/DESIGN-apple-swiftui.md) — 用 UIKit/SwiftUI 語彙表達的格式。
+- `designmd spec` — 規範性格式規格 + 啟用中的規則表。
+
 ## CI
 
 [`.github/workflows/design-lint.yml`](.github/workflows/design-lint.yml) 會 build 工具、跑測試，
